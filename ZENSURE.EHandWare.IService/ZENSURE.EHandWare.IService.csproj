@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ZENSURE.EHandWare.ICommon\ZENSURE.EHandWare.ICommon.csproj" />
+    <ProjectReference Include="..\ZENSURE.EHandWare.IRepository\ZENSURE.EHandWare.IRepository.csproj" />
+    <ProjectReference Include="..\ZENSURE.EHandWare.Models\ZENSURE.EHandWare.Models.csproj" />
+  </ItemGroup>
+
+</Project>
