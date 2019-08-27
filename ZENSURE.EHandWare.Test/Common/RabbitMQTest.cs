@@ -37,7 +37,7 @@ namespace ZENSURE.EHandWare.Test.Common
                     Act = "T",
                     LogCreateTime = DateTime.Now
                 };
-                _producerClient.SendMessage("Ecoupon_UNRESERVE_15", data);
+                _producerClient.SendMessage("MessageMQ", data);
             }
         }
 
