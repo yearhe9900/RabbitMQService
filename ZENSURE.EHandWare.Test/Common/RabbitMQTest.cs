@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using Xunit;
 using Xunit.Abstractions;
 using ZENSURE.EHandWare.ICommon.RabbitMQ;
@@ -27,6 +25,26 @@ namespace ZENSURE.EHandWare.Test.Common
         /// 发送和接受消息测试
         /// </summary>
         [Fact]
+        public void SEND_TEST()
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                var data = new MessageData2
+                {
+                    ID = i,
+                    MemberID = "xxxxxxxxx1",
+                    CardNo = "xxxxxxx",
+                    Act = "T",
+                    LogCreateTime = DateTime.Now
+                };
+                _producerClient.SendMessage("Ecoupon_UNRESERVE_15", data);
+            }
+        }
+
+        /// <summary>
+        /// 发送和接受消息测试
+        /// </summary>
+        [Fact]
         public void SEND_AND_LISTEN_TEST()
         {
             for (int i = 0; i < 10; i++)
@@ -44,7 +62,24 @@ namespace ZENSURE.EHandWare.Test.Common
                 _producerClient.SendMessage("MessageMQ", data);
             }
 
-            _consumerClient.Listen<MessageData>("MessageMQ", Excete, isTask: false);
+            _consumerClient.Listen("MessageMQ", ((MessageData msg) =>
+            {
+                _output.WriteLine($"获取到消息{msg.Id}");
+                return true;
+            }), isTask: false);
+        }
+
+        /// <summary>
+        /// 接受消息测试
+        /// </summary>
+        [Fact]
+        public void LISTEN_TEST()
+        {
+            _consumerClient.Listen("MessageMQ", ((MessageData msg) =>
+            {
+                _output.WriteLine($"获取到消息{msg.Id}");
+                return true;
+            }), isTask: false);
         }
 
         /// <summary>
@@ -70,14 +105,12 @@ namespace ZENSURE.EHandWare.Test.Common
 
             for (int i = 0; i < 10; i++)
             {
-                _consumerClient.ListenByExchange<MessageData>("Order", Excete, $"12345MQ{i}", isTask: false);
+                _consumerClient.ListenByExchange<MessageData>("Order", ((MessageData msg) =>
+                {
+                    _output.WriteLine($"获取到消息{msg.Id}");
+                    return true;
+                }), $"12345MQ{i}", isTask: false);
             }
-        }
-
-        private static bool Excete(MessageData msg)
-        {
-            _output.WriteLine($"获取到消息{msg.Id}");
-            return true;
         }
     }
 }

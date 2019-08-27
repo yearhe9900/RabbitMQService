@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using ZENSURE.EHandWare.ICommon.RabbitMQ;
 using ZENSURE.EHandWare.Models.Options;
 using Microsoft.Extensions.Options;
-using AliyunAMQP;
 
 namespace ZENSURE.EHandWare.Common.RabbitMQ
 {
@@ -27,12 +26,13 @@ namespace ZENSURE.EHandWare.Common.RabbitMQ
                 AutomaticRecoveryEnabled = true //自动重连
             };
 
+            _connectionFactory.VirtualHost = rabbitMQ.VirtualHost;
+
             //如果为AliwareMQ，启动ali配置
-            if (rabbitMQ.IsAliMQ)
-            {
-                _connectionFactory.VirtualHost = rabbitMQ.VirtualHost;
-                _connectionFactory.AuthMechanisms = new List<AuthMechanismFactory>() { new AliyunMechanismFactory() };
-            }
+            //if (rabbitMQ.IsAliMQ)
+            //{
+            //    _connectionFactory.AuthMechanisms = new List<AuthMechanismFactory>() { new AliyunMechanismFactory() };
+            //}
 
             //创建链接
             _connection = _connectionFactory.CreateConnection();
