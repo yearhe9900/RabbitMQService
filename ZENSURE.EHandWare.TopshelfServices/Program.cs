@@ -1,10 +1,10 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System.IO;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.IO;
 using ZENSURE.EHandWare.Common.RabbitMQ;
 using ZENSURE.EHandWare.ICommon.RabbitMQ;
 using ZENSURE.EHandWare.ListenExcete;
+using ZENSURE.EHandWare.Models.Input;
 using ZENSURE.EHandWare.Models.Options;
 
 namespace ZENSURE.EHandWare.TopshelfServices
@@ -19,7 +19,7 @@ namespace ZENSURE.EHandWare.TopshelfServices
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true) //指定加载的配置文件
                 .Build(); //编译成对象 
 
-            var serviceProvider = new ServiceCollection() 
+            var serviceProvider = new ServiceCollection()
                 .AddOptions()
                 .Configure<RabbitMQOption>(c => config.Bind("RabbitMQOption", c)) //注入配置数据
                 .AddSingleton<IRabbitMQClient, RabbitMQClient>()
@@ -29,7 +29,7 @@ namespace ZENSURE.EHandWare.TopshelfServices
 
             var consumeClient = serviceProvider.GetService<IMQConsumerClient>();
 
-            //consumeClient.ListenByExchange<MessageData>("Order", ExpAccountMQJob.Excete, $"12345MQ", isTask: false);
+            consumeClient.Listen<MessageData>("CrmTestQueue", ExpAccountMQJob.Excete);
         }
     }
 }
