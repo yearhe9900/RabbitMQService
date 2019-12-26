@@ -1,12 +1,12 @@
-﻿using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
-using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 using ZENSURE.EHandWare.ICommon.RabbitMQ;
 using ZENSURE.EHandWare.Models.Options;
 
@@ -47,32 +47,38 @@ namespace ZENSURE.EHandWare.Common.RabbitMQ
         public void Listen<T>(string qName, Func<T, bool> allwaysRunAction, bool isTask = false) where T : class
         {
             if (allwaysRunAction == null || string.IsNullOrEmpty(qName)) return;
-
-            IModel listenChannel = _connection.CreateModel();
-            listenChannel.QueueDeclare(qName, true, false, false, null);
-            var consumer = new EventingBasicConsumer(listenChannel);
-            //公平分发,不要同一时间给一个工作者发送多于一个消息
-            listenChannel.BasicQos(0, 50, false);
-            // 消费消息；false 为手动应答 
-            listenChannel.BasicConsume(qName, false, consumer);
-            consumer.Received += (model, ea) =>
+            try
             {
-                byte[] bytes = ea.Body;
-                var resp = SerializeObject<T>(ea.Body);
-                if (!isTask)
+                IModel listenChannel = _connection.CreateModel();
+                listenChannel.QueueDeclare(qName, true, false, false, null);
+                var consumer = new EventingBasicConsumer(listenChannel);
+                //公平分发,不要同一时间给一个工作者发送多于一个消息
+                listenChannel.BasicQos(0, 50, false);
+                // 消费消息；false 为手动应答 
+                listenChannel.BasicConsume(qName, false, consumer);
+                consumer.Received += (model, ea) =>
                 {
-                    Execute(listenChannel, allwaysRunAction, resp, ea.DeliveryTag);
-                }
-                else
-                {
-                    var task = new Task(
-                        () => { Execute(listenChannel, allwaysRunAction, resp, ea.DeliveryTag); });
-                    if (Tasks.Count > _maxTaskCount)
-                        TasksCache.Enqueue(task);
+                    byte[] bytes = ea.Body;
+                    var resp = SerializeObject<T>(ea.Body);
+                    if (!isTask)
+                    {
+                        Execute(listenChannel, allwaysRunAction, resp, ea.DeliveryTag);
+                    }
                     else
-                        Tasks.Enqueue(task);
-                }
-            };
+                    {
+                        var task = new Task(
+                            () => { Execute(listenChannel, allwaysRunAction, resp, ea.DeliveryTag); });
+                        if (Tasks.Count > _maxTaskCount)
+                            TasksCache.Enqueue(task);
+                        else
+                            Tasks.Enqueue(task);
+                    }
+                };
+            }
+            catch
+            {
+                return;
+            }
         }
 
         /// <summary>
